@@ -143,9 +143,9 @@ public final class GCSToSplunk {
         splunkEventTuple.get(SPLUNK_EVENT_OUT).apply("Write to Splunk", writeToSplunk(options));
 
     flattenErrorsAndConvertToString(
-        failsafeTransformedLines.get(UDF_ERROR_OUT),
-        splunkEventTuple.get(SPLUNK_EVENT_ERROR_OUT),
-        wrappedSplunkWriteErrors)
+            failsafeTransformedLines.get(UDF_ERROR_OUT),
+            splunkEventTuple.get(SPLUNK_EVENT_ERROR_OUT),
+            wrappedSplunkWriteErrors)
         .apply("Output Errors To GCS", writeErrorsToGCS(options));
 
     return pipeline.run();
