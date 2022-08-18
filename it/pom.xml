@@ -24,6 +24,7 @@
   <properties>
     <autovalue.version>1.8.2</autovalue.version>
     <beam.version>2.38.0</beam.version>
+    <cloud-bigquery.version>2.6.1</cloud-bigquery.version>
     <cloud-bom.version>24.2.0</cloud-bom.version>
     <cloud-storage.version>2.2.2</cloud-storage.version>
     <java.version>1.8</java.version>
@@ -67,7 +68,10 @@
       <artifactId>google-cloud-storage</artifactId>
       <version>${cloud-storage.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-bigquery</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.auto.value</groupId>
       <artifactId>auto-value</artifactId>
