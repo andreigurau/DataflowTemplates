@@ -151,6 +151,8 @@ public abstract class TemplateTestBase {
     template = getTemplateAnnotation(annotation, templateClass);
     if (template == null) {
       return;
+    } else if (template.placeholderClass() != void.class) {
+      templateClass = template.placeholderClass();
     }
     if (TestProperties.hasAccessToken()) {
       credentials = TestProperties.googleCredentials();
