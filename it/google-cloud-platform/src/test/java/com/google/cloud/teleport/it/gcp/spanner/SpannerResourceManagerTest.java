@@ -27,14 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.cloud.Timestamp;
-import com.google.cloud.spanner.Database;
-import com.google.cloud.spanner.Instance;
-import com.google.cloud.spanner.InstanceAdminClient;
-import com.google.cloud.spanner.Mutation;
-import com.google.cloud.spanner.ResultSet;
-import com.google.cloud.spanner.Spanner;
-import com.google.cloud.spanner.SpannerException;
-import com.google.cloud.spanner.Struct;
+import com.google.cloud.spanner.*;
 import com.google.common.collect.ImmutableList;
 import java.util.concurrent.ExecutionException;
 import org.junit.Before;
@@ -66,6 +59,7 @@ public final class SpannerResourceManagerTest {
   private static final String TEST_ID = "test";
   private static final String PROJECT_ID = "test-project";
   private static final String REGION = "us-east1";
+  private static final Dialect DIALECT = Dialect.GOOGLE_STANDARD_SQL;
   private SpannerResourceManager testManager;
 
   @Captor private ArgumentCaptor<Iterable<Mutation>> writeMutationCaptor;
@@ -75,7 +69,7 @@ public final class SpannerResourceManagerTest {
 
   @Before
   public void setUp() {
-    testManager = new SpannerResourceManager(spanner, TEST_ID, PROJECT_ID, REGION);
+    testManager = new SpannerResourceManager(spanner, TEST_ID, PROJECT_ID, REGION, DIALECT);
   }
 
   private void prepareCreateInstanceMock() throws ExecutionException, InterruptedException {
@@ -106,7 +100,7 @@ public final class SpannerResourceManagerTest {
       throws ExecutionException, InterruptedException {
     // arrange
     prepareCreateInstanceMock();
-    when(spanner.getDatabaseAdminClient().createDatabase(any(), any(), any()).get())
+    when(spanner.getDatabaseAdminClient().createDatabase(any(), any()).get())
         .thenThrow(InterruptedException.class);
     prepareUpdateDatabaseMock();
     String statement =
@@ -160,7 +154,7 @@ public final class SpannerResourceManagerTest {
     // verify createInstance, createDatabase, and updateDatabaseDdl were called twice - once in
     // create table, once in their respective prepareMock helper methods.
     verify(spanner.getInstanceAdminClient(), times(2)).createInstance(any());
-    verify(spanner.getDatabaseAdminClient(), times(2)).createDatabase(any(), any(), any());
+    verify(spanner.getDatabaseAdminClient(), times(2)).createDatabase(any(), any());
     verify(spanner.getDatabaseAdminClient(), times(2))
         .updateDatabaseDdl(
             instanceIdCaptor.capture(),
@@ -408,7 +402,7 @@ public final class SpannerResourceManagerTest {
     // arrange
     doThrow(SpannerException.class).when(instanceAdminClient).deleteInstance(any());
     when(spanner.getInstanceAdminClient()).thenReturn(instanceAdminClient);
-    testManager = new SpannerResourceManager(spanner, TEST_ID, PROJECT_ID, REGION);
+    testManager = new SpannerResourceManager(spanner, TEST_ID, PROJECT_ID, REGION, DIALECT);
 
     // act & assert
     assertThrows(SpannerResourceManagerException.class, () -> testManager.cleanupAll());
@@ -419,7 +413,7 @@ public final class SpannerResourceManagerTest {
     // arrange
     doNothing().when(instanceAdminClient).deleteInstance(any());
     when(spanner.getInstanceAdminClient()).thenReturn(instanceAdminClient);
-    testManager = new SpannerResourceManager(spanner, TEST_ID, PROJECT_ID, REGION);
+    testManager = new SpannerResourceManager(spanner, TEST_ID, PROJECT_ID, REGION, DIALECT);
 
     // act
     testManager.cleanupAll();
@@ -435,7 +429,7 @@ public final class SpannerResourceManagerTest {
     doNothing().when(instanceAdminClient).deleteInstance(any());
     when(spanner.getInstanceAdminClient()).thenReturn(instanceAdminClient);
     when(spanner.isClosed()).thenReturn(true);
-    testManager = new SpannerResourceManager(spanner, TEST_ID, PROJECT_ID, REGION);
+    testManager = new SpannerResourceManager(spanner, TEST_ID, PROJECT_ID, REGION, DIALECT);
     testManager.cleanupAll();
     String statement =
         "CREATE TABLE Singers (\n"
@@ -466,7 +460,7 @@ public final class SpannerResourceManagerTest {
 
   private void prepareCreateDatabaseMock() throws ExecutionException, InterruptedException {
     Mockito.lenient()
-        .when(spanner.getDatabaseAdminClient().createDatabase(any(), any(), any()).get())
+        .when(spanner.getDatabaseAdminClient().createDatabase(any(), any()).get())
         .thenReturn(database);
   }
 
